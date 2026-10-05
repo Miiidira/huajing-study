@@ -1,0 +1,9 @@
+{
+  "name": "画境 Study",
+  "short_name": "画境 Study",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "orientation": "portrait"
+}
