@@ -3,7 +3,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#f7f7f7">
-<title>画境 Study</title><style>
+<title>画境 Study</title>
+<!-- ★ 新增：PWA 清单文件连接 -->
+<link rel="manifest" href="./manifest.json">
+<style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{
   font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
@@ -1135,12 +1138,6 @@ function createHistorySnapshot(){
   return { layers:cloneLayers(), active:activeLayerIndex };
 }
 
-/* ---------------------------------------------------------
-   ★ 关键修改点 1：cloneLayers
-   - 图像图层保存 imageData（dataURL 字符串）
-   - 同时保存 canvasData（用于即时渲染，图片加载完再精确重绘）
-   - 普通图层只保存 canvasData
---------------------------------------------------------- */
 function cloneLayers(){
   return layers.map(layer=>{
     const item={
@@ -1182,11 +1179,6 @@ function saveHistory(){
   updateHistoryButtons();
 }
 
-/* ---------------------------------------------------------
-   ★ 关键修改点 2：restoreSnapshot
-   - 从 imageData 重建 Image 对象（图像图层）
-   - 从 canvasData 恢复画布内容
---------------------------------------------------------- */
 function restoreSnapshot(snapshot){
   if(!snapshot) return;
 
@@ -1325,10 +1317,6 @@ function hasDraft(){
   return !!localStorage.getItem(DRAFT_KEY);
 }
 
-/* ---------------------------------------------------------
-   ★ 关键修改点 3：restoreDraft
-   与 restoreSnapshot 逻辑一致
---------------------------------------------------------- */
 function restoreDraft(){
   try{
     const data=JSON.parse(localStorage.getItem(DRAFT_KEY));
@@ -1432,8 +1420,6 @@ function clearLayer(){
 
 /* =====================================================
    图片导入
-   ★ 关键修改点 4：改用 FileReader 读为 dataURL
-     这样 img.src 就是可序列化、可持久化的字符串
 ===================================================== */
 
 function importImage(){
@@ -1885,5 +1871,14 @@ if(hasDraft()){
   document.getElementById("continueDraftButton").style.display="block";
 }
 
-</script></body>
+</script>
+<!-- ★ 新增：注册 Service Worker -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js");
+  });
+}
+</script>
+</body>
 </html>
