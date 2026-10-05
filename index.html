@@ -1,0 +1,1889 @@
+<!DOCTYPE html><html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#f7f7f7">
+<title>画境 Study</title><style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  background:#f5f5f7;
+  color:#222;
+  overflow:hidden;
+}
+button,input{font:inherit}
+button{border:0;background:none}
+
+.page{display:none;height:100vh;overflow:auto}
+.page.active{display:block}
+
+.home{padding:28px 18px 100px}
+.logo{font-size:28px;font-weight:800;margin-bottom:6px}
+.sub{color:#888;font-size:14px}
+
+.welcome{margin-top:24px;background:#fff;border-radius:22px;padding:22px;box-shadow:0 6px 25px rgba(0,0,0,.05)}
+.welcome h2{font-size:20px;margin-bottom:8px}
+.welcome p{font-size:14px;color:#888;margin-bottom:18px}
+
+.primary{width:100%;padding:14px;border-radius:14px;background:#222;color:white;font-weight:700}
+
+.section-title{margin:25px 3px 12px;font-size:17px;font-weight:700}
+
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:#fff;border-radius:18px;padding:18px;min-height:100px;box-shadow:0 5px 18px rgba(0,0,0,.04)}
+.card b{display:block;margin-bottom:8px}
+.card span{font-size:13px;color:#888}
+
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;height:68px;background:rgba(255,255,255,.95);border-top:1px solid #eee;display:flex;z-index:50}
+.nav-item{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;color:#999;font-size:11px}
+.nav-item.active{color:#111;font-weight:700}
+.nav-icon{font-size:22px}
+
+.draw-page{height:100vh;display:none;flex-direction:column;background:#222}
+.draw-page.active{display:flex}
+
+.draw-top{height:52px;background:#fff;display:flex;align-items:center;padding:0 8px;gap:5px;flex-shrink:0}
+.top-btn{padding:8px 9px;border-radius:10px;font-size:14px;transition:opacity .2s;white-space:nowrap}
+.top-btn:active{background:#eee}
+.top-title{flex:1;text-align:center;font-weight:700}
+.export-btn{background:#222;color:#fff}
+
+.canvas-area{flex:1;position:relative;overflow:hidden;touch-action:none;background:
+  linear-gradient(45deg,#ddd 25%,transparent 25%),
+  linear-gradient(-45deg,#ddd 25%,transparent 25%),
+  linear-gradient(45deg,transparent 75%,#ddd 75%),
+  linear-gradient(-45deg,transparent 75%,#ddd 75%);
+  background-size:20px 20px;
+  background-position:0 0,0 10px,10px -10px,-10px 0;
+}
+
+.canvas-wrap{position:absolute;left:50%;top:50%;transform-origin:center center;box-shadow:0 5px 30px rgba(0,0,0,.4)}
+
+#canvas{display:block;background:white;touch-action:none}
+
+.zoom-info{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.65);color:#fff;padding:6px 10px;border-radius:20px;font-size:12px;z-index:4}
+
+.touch-mode-info{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:rgba(0,0,0,.68);color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;z-index:5;display:none;pointer-events:none}
+.touch-mode-info.show{display:block}
+
+.draw-tools{background:#fff;padding:9px;flex-shrink:0}
+
+.brush-panel{display:flex;gap:7px;overflow-x:auto;padding-bottom:8px}
+
+.brush-item{min-width:72px;padding:8px 6px;border-radius:12px;background:#f1f1f3;text-align:center;font-size:12px}
+.brush-item.active{background:#222;color:#fff}
+
+.brush-preview{width:42px;height:20px;margin:0 auto 4px;position:relative}
+.preview-line{position:absolute;left:2px;right:2px;top:8px;height:4px;border-radius:10px;background:currentColor}
+.preview-soft .preview-line{filter:blur(3px);opacity:.7}
+.preview-spray .preview-line{opacity:.25;filter:blur(5px)}
+
+.tool-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:7px;scrollbar-width:none}
+.tool-row::-webkit-scrollbar{display:none}
+
+.tool{min-width:58px;padding:9px 7px;background:#f2f2f4;border-radius:12px;font-size:12px;text-align:center;white-space:nowrap}
+.tool.active{background:#222;color:#fff}
+
+.color-box{width:35px;height:35px;border-radius:50%;border:3px solid #ddd;overflow:hidden;flex-shrink:0}
+.color-box input{width:60px;height:60px;margin:-12px;border:0}
+
+.size-row{display:flex;align-items:center;gap:10px}
+.size-row input{flex:1}
+.size-value{min-width:55px;text-align:right;font-size:13px}
+
+.modal-mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:flex-end}
+.modal-mask.show{display:flex}
+
+.modal{width:100%;background:#fff;border-radius:22px 22px 0 0;padding:18px;max-height:82vh;overflow:auto}
+
+.modal-title{font-size:18px;font-weight:700;margin-bottom:15px}
+
+.modal-close{width:100%;padding:12px;border-radius:12px;background:#eee;margin-top:14px}
+
+.toolbar-tip{color:#888;font-size:13px;line-height:1.6;margin-bottom:14px}
+
+.toolbar-setting{display:flex;align-items:center;justify-content:space-between;padding:13px 5px;border-bottom:1px solid #eee}
+.toolbar-setting:last-child{border-bottom:0}
+.toolbar-setting-left{display:flex;align-items:center;gap:10px}
+.toolbar-setting-icon{width:35px;height:35px;border-radius:10px;background:#f1f1f3;display:flex;align-items:center;justify-content:center}
+.toolbar-setting-name{font-size:14px}
+.toolbar-check{width:23px;height:23px;accent-color:#222}
+
+.size-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.size-option{padding:14px;background:#f3f3f5;border-radius:13px}
+.size-option b{display:block}
+.size-option span{font-size:12px;color:#888}
+
+.layer-item{display:flex;align-items:center;gap:6px;padding:9px;margin-bottom:7px;border-radius:13px;background:#f3f3f5}
+.layer-item.active{outline:2px solid #222}
+.layer-eye{width:32px;height:32px}
+.layer-thumb{width:42px;height:42px;background:white;border-radius:7px;object-fit:cover;border:1px solid #ddd}
+.layer-name{flex:1;min-width:0;font-size:13px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.layer-actions{display:flex;gap:3px}
+.layer-actions button{padding:6px;border-radius:8px;background:#fff;font-size:12px}
+
+.image-editor-info{font-size:13px;color:#888;margin-bottom:15px}
+
+.range-line{margin:14px 0}
+.range-line label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.range-line input{width:100%}
+
+.work-grid{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.work{background:#fff;border-radius:15px;overflow:hidden}
+.work img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.work-info{padding:9px}
+.work-info b{display:block;font-size:13px}
+.work-info span{color:#999;font-size:11px}
+.work-delete{margin-top:6px;padding:5px 8px;background:#eee;border-radius:8px;font-size:11px}
+
+.settings{padding:25px 18px 100px}
+.setting-item{background:#fff;border-radius:15px;padding:16px;margin-bottom:10px}
+.setting-item b{display:block}
+.setting-item span{color:#888;font-size:13px}
+
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:rgba(0,0,0,.8);color:#fff;padding:9px 16px;border-radius:20px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:300}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style></head><body>
+
+<div id="homePage" class="page active">
+  <div class="home">
+    <div class="logo">画境 Study</div>
+    <div class="sub">给学生的轻量绘画工具</div>
+
+    <div class="welcome">
+      <h2>开始你的创作</h2>
+      <p>不用复杂设置，拿起手机就可以画。</p>
+
+      <button class="primary" onclick="openCreate()">＋ 新建作品</button>
+
+      <button
+        id="continueDraftButton"
+        class="tool"
+        style="width:100%;margin-top:10px;padding:13px;display:none"
+        onclick="restoreDraft()"
+      >↩️ 继续上次创作</button>
+    </div>
+
+    <div class="section-title">快速开始</div>
+
+    <div class="card-grid">
+      <div class="card" onclick="openCreate()"><b>🎨 开始绘画</b><span>创建新的画布</span></div>
+      <div class="card" onclick="showPage('worksPage')"><b>🖼️ 我的作品</b><span id="workCount">0 个作品</span></div>
+      <div class="card"><b>🌐 作品广场</b><span>以后再慢慢加入</span></div>
+      <div class="card" onclick="showPage('settingsPage')"><b>⚙️ 设置</b><span>应用信息</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="worksPage" class="page">
+  <div class="home">
+    <div class="logo">我的作品</div>
+    <div class="sub">保存在本机浏览器中</div>
+  </div>
+  <div id="workGrid" class="work-grid"></div>
+</div>
+
+<div id="settingsPage" class="page">
+  <div class="settings">
+    <div class="logo">设置</div>
+    <div class="setting-item"><b>画境 Study</b><span>轻量移动绘画工具</span></div>
+    <div class="setting-item"><b>版本</b><span>1.2.0</span></div>
+    <div class="setting-item"><b>数据保存</b><span>作品目前保存在当前浏览器的本地存储中。</span></div>
+    <div class="setting-item"><b>关于</b><span>这是一个个人绘画项目，慢慢做就好。</span></div>
+  </div>
+</div>
+
+<div class="bottom-nav" id="bottomNav">
+  <div class="nav-item active" onclick="showPage('homePage',this)"><div class="nav-icon">⌂</div>首页</div>
+  <div class="nav-item" onclick="openCreate()"><div class="nav-icon">＋</div>创作</div>
+  <div class="nav-item" onclick="showPage('worksPage',this)"><div class="nav-icon">▣</div>作品</div>
+  <div class="nav-item" onclick="showPage('settingsPage',this)"><div class="nav-icon">⚙</div>设置</div>
+</div>
+
+<div id="drawPage" class="draw-page">
+  <div class="draw-top">
+    <button class="top-btn" onclick="leaveDrawing()">‹</button>
+    <div class="top-title">绘画</div>
+    <button class="top-btn" onclick="undo()">↶</button>
+    <button class="top-btn" onclick="redo()">↷</button>
+    <button class="top-btn" onclick="openLayers()">图层</button>
+    <button class="top-btn" onclick="openToolbarSettings()">工具</button>
+    <button class="top-btn export-btn" onclick="exportPNG()">PNG</button>
+    <button class="top-btn" onclick="finishDrawing()">完成</button>
+  </div>
+
+  <div class="canvas-area" id="canvasArea">
+    <div class="canvas-wrap" id="canvasWrap"><canvas id="canvas"></canvas></div>
+    <div class="zoom-info" id="zoomInfo">100%</div>
+    <div class="touch-mode-info" id="touchModeInfo">✋ 触控模式</div>
+  </div>
+
+  <div class="draw-tools">
+    <div class="brush-panel">
+      <button class="brush-item active" id="brushPencil" data-toolbar="brushPencil" onclick="setBrush('pencil')">
+        <div class="brush-preview"><div class="preview-line"></div></div>✏️ 铅笔
+      </button>
+      <button class="brush-item" id="brushHard" data-toolbar="brushHard" onclick="setBrush('hard')">
+        <div class="brush-preview"><div class="preview-line"></div></div>🖊️ 硬笔
+      </button>
+      <button class="brush-item" id="brushSoft" data-toolbar="brushSoft" onclick="setBrush('soft')">
+        <div class="brush-preview preview-soft"><div class="preview-line"></div></div>🖌️ 软笔
+      </button>
+      <button class="brush-item" id="brushSpray" data-toolbar="brushSpray" onclick="setBrush('spray')">
+        <div class="brush-preview preview-spray"><div class="preview-line"></div></div>🌫️ 喷笔
+      </button>
+    </div>
+
+    <div class="tool-row" id="mainToolRow">
+      <button class="tool active" id="brushTool" data-toolbar="brush" onclick="setTool('brush')">🖌️ 画笔</button>
+      <button class="tool" id="eraserTool" data-toolbar="eraser" onclick="setTool('eraser')">◻️ 橡皮</button>
+      <button class="tool" id="touchTool" data-toolbar="touch" onclick="setTool('touch')">✋ 触控</button>
+      <label class="color-box" id="colorTool" data-toolbar="color"><input type="color" id="colorPicker" value="#222222"></label>
+      <button class="tool" id="clearTool" data-toolbar="clear" onclick="clearLayer()">清空</button>
+      <button class="tool" id="resetViewTool" data-toolbar="resetView" onclick="resetView()">重置视图</button>
+      <button class="tool" id="importTool" data-toolbar="import" onclick="importImage()">导入图片</button>
+    </div>
+
+    <div class="size-row" id="sizeTool" data-toolbar="size">
+      <span>大小</span>
+      <input id="sizeSlider" type="range" min="1" max="100" value="12">
+      <span class="size-value" id="sizeValue">12 px</span>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="createModal">
+  <div class="modal">
+    <div class="modal-title">新建作品</div>
+
+    <div class="size-options">
+      <button class="size-option" onclick="createCanvas(1080,1080,document.getElementById('transparentBackground').checked)">
+        <b>正方形</b><span>1080 × 1080</span>
+      </button>
+      <button class="size-option" onclick="createCanvas(1080,1920,document.getElementById('transparentBackground').checked)">
+        <b>手机壁纸</b><span>1080 × 1920</span>
+      </button>
+      <button class="size-option" onclick="createCanvas(1920,1080,document.getElementById('transparentBackground').checked)">
+        <b>横屏</b><span>1920 × 1080</span>
+      </button>
+      <button class="size-option" onclick="createCanvas(2480,3508,document.getElementById('transparentBackground').checked)">
+        <b>A4</b><span>2480 × 3508</span>
+      </button>
+      <button class="size-option" onclick="openCustomSize()">
+        <b>自定义</b><span>自己输入尺寸</span>
+      </button>
+    </div>
+
+    <label style="display:flex;align-items:center;gap:9px;margin-top:14px;padding:13px;background:#f3f3f5;border-radius:13px;font-size:13px">
+      <input type="checkbox" id="transparentBackground" style="width:20px;height:20px">
+      <span><b>透明背景</b><br><small style="color:#888">导出的 PNG 将保留透明区域</small></span>
+    </label>
+
+    <div id="customSizeBox" style="display:none;margin-top:12px;background:#f3f3f5;padding:14px;border-radius:14px">
+      <div style="font-size:13px;margin-bottom:8px">自定义画布尺寸</div>
+      <div style="display:flex;gap:8px">
+        <input id="customWidth" type="number" value="1080" min="50" max="5000" placeholder="宽度" style="flex:1;padding:11px;border:0;border-radius:10px">
+        <span style="display:flex;align-items:center">×</span>
+        <input id="customHeight" type="number" value="1080" min="50" max="5000" placeholder="高度" style="flex:1;padding:11px;border:0;border-radius:10px">
+      </div>
+      <button class="primary" style="margin-top:10px" onclick="createCustomCanvas()">创建画布</button>
+    </div>
+
+    <button class="modal-close" onclick="closeModal('createModal')">取消</button>
+  </div>
+</div>
+
+<div class="modal-mask" id="toolbarModal">
+  <div class="modal">
+    <div class="modal-title">自定义工具栏</div>
+    <div class="toolbar-tip">选择你想显示的工具。<br>不常用的工具可以隐藏，让画布下面更加简洁。</div>
+
+    <div class="toolbar-setting"><div class="toolbar-setting-left"><div class="toolbar-setting-icon">🖌️</div><div class="toolbar-setting-name">画笔</div></div><input class="toolbar-check" type="checkbox" data-toolbar-check="brush"></div>
+    <div class="toolbar-setting"><div class="toolbar-setting-left"><div class="toolbar-setting-icon">◻️</div><div class="toolbar-setting-name">橡皮</div></div><input class="toolbar-check" type="checkbox" data-toolbar-check="eraser"></div>
+    <div class="toolbar-setting"><div class="toolbar-setting-left"><div class="toolbar-setting-icon">✋</div><div class="toolbar-setting-name">触控</div></div><input class="toolbar-check" type="checkbox" data-toolbar-check="touch"></div>
+    <div class="toolbar-setting"><div class="toolbar-setting-left"><div class="toolbar-setting-icon">🎨</div><div class="toolbar-setting-name">颜色</div></div><input class="toolbar-check" type="checkbox" data-toolbar-check="color"></div>
+    <div class="toolbar-setting"><div class="toolbar-setting-left"><div class="toolbar-setting-icon">🧹</div><div class="toolbar-setting-name">清空</div></div><input class="toolbar-check" type="checkbox" data-toolbar-check="clear"></div>
+    <div class="toolbar-setting"><div class="toolbar-setting-left"><div class="toolbar-setting-icon">🔍</div><div class="toolbar-setting-name">重置视图</div></div><input class="toolbar-check" type="checkbox" data-toolbar-check="resetView"></div>
+    <div class="toolbar-setting"><div class="toolbar-setting-left"><div class="toolbar-setting-icon">🖼️</div><div class="toolbar-setting-name">导入图片</div></div><input class="toolbar-check" type="checkbox" data-toolbar-check="import"></div>
+    <div class="toolbar-setting"><div class="toolbar-setting-left"><div class="toolbar-setting-icon">📏</div><div class="toolbar-setting-name">画笔大小</div></div><input class="toolbar-check" type="checkbox" data-toolbar-check="size"></div>
+    <div class="toolbar-setting"><div class="toolbar-setting-left"><div class="toolbar-setting-icon">✏️</div><div class="toolbar-setting-name">铅笔</div></div><input class="toolbar-check" type="checkbox" data-toolbar-check="brushPencil"></div>
+    <div class="toolbar-setting"><div class="toolbar-setting-left"><div class="toolbar-setting-icon">🖊️</div><div class="toolbar-setting-name">硬笔</div></div><input class="toolbar-check" type="checkbox" data-toolbar-check="brushHard"></div>
+    <div class="toolbar-setting"><div class="toolbar-setting-left"><div class="toolbar-setting-icon">🖌️</div><div class="toolbar-setting-name">软笔</div></div><input class="toolbar-check" type="checkbox" data-toolbar-check="brushSoft"></div>
+    <div class="toolbar-setting"><div class="toolbar-setting-left"><div class="toolbar-setting-icon">🌫️</div><div class="toolbar-setting-name">喷笔</div></div><input class="toolbar-check" type="checkbox" data-toolbar-check="brushSpray"></div>
+
+    <button class="tool" style="width:100%;padding:12px;margin-top:14px" onclick="resetToolbarSettings()">恢复默认工具栏</button>
+    <button class="modal-close" onclick="closeToolbarSettings()">完成</button>
+  </div>
+</div>
+
+<div class="modal-mask" id="layersModal">
+  <div class="modal">
+    <div class="modal-title">图层</div>
+    <button class="primary" onclick="addLayer()" style="margin-bottom:12px">＋ 新建图层</button>
+    <div id="layerList"></div>
+    <button class="modal-close" onclick="closeModal('layersModal')">完成</button>
+  </div>
+</div>
+
+<div class="modal-mask" id="imageEditorModal">
+  <div class="modal">
+    <div class="modal-title">编辑图片</div>
+    <div class="image-editor-info">可以直接在画布上拖动图片。双指可以缩放和旋转。</div>
+
+    <div class="range-line"><label><span>大小</span><span id="imageScaleLabel">100%</span></label><input id="imageScale" type="range" min="20" max="500" value="100"></div>
+    <div class="range-line"><label><span>旋转</span><span id="imageRotationLabel">0°</span></label><input id="imageRotation" type="range" min="-180" max="180" value="0"></div>
+    <div class="range-line"><label><span>不透明度</span><span id="imageOpacityLabel">100%</span></label><input id="imageOpacity" type="range" min="0" max="100" value="100"></div>
+    <div class="range-line"><label><span>水平位置</span><span id="imageXLabel">0</span></label><input id="imageX" type="range" min="-2000" max="2000" value="0"></div>
+    <div class="range-line"><label><span>垂直位置</span><span id="imageYLabel">0</span></label><input id="imageY" type="range" min="-2000" max="2000" value="0"></div>
+
+    <button class="tool" style="width:100%;padding:12px" onclick="resetImageTransform()">恢复默认</button>
+    <button class="modal-close" onclick="closeImageEditor()">完成</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+/* =====================================================
+   基础状态
+===================================================== */
+
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+
+const canvasWrap=document.getElementById("canvasWrap");
+const canvasArea=document.getElementById("canvasArea");
+
+let canvasWidth=1080;
+let canvasHeight=1080;
+
+let layers=[];
+let activeLayerIndex=1;
+
+let currentTool="brush";
+let currentBrush="pencil";
+
+let brushColor="#222222";
+let brushSize=12;
+
+let drawing=false;
+let lastX=0;
+let lastY=0;
+
+let zoom=1;
+let panX=0;
+let panY=0;
+
+let history=[];
+let redoHistory=[];
+const MAX_HISTORY=30;
+let historySaveTimer=null;
+
+const DRAFT_KEY="huajing_study_draft_v1";
+let draftTimer=null;
+
+let editingImageIndex=-1;
+let imagePointers=new Map();
+let imageGestureMode=null;
+let imageGestureStartDistance=0;
+let imageGestureStartAngle=0;
+let imageGestureStartScale=1;
+let imageGestureStartRotation=0;
+
+let viewPointers=new Map();
+let viewGestureMode=null;
+let viewStartDistance=0;
+let viewStartZoom=1;
+let viewStartMidX=0;
+let viewStartMidY=0;
+let viewStartPanX=0;
+let viewStartPanY=0;
+
+/* =====================================================
+   页面
+===================================================== */
+
+function showPage(id,nav){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById("drawPage").classList.remove("active");
+
+  const page=document.getElementById(id);
+  if(page) page.classList.add("active");
+
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  if(nav) nav.classList.add("active");
+
+  if(id==="worksPage") renderWorks();
+}
+
+function openCreate(){
+  document.getElementById("createModal").classList.add("show");
+}
+
+function closeModal(id){
+  document.getElementById(id).classList.remove("show");
+}
+
+/* =====================================================
+   自定义尺寸
+===================================================== */
+
+function openCustomSize(){
+  const box=document.getElementById("customSizeBox");
+  box.style.display = box.style.display==="none" ? "block" : "none";
+}
+
+function createCustomCanvas(){
+  const w=Number(document.getElementById("customWidth").value);
+  const h=Number(document.getElementById("customHeight").value);
+
+  if(!Number.isFinite(w)||!Number.isFinite(h)||w<50||h<50||w>5000||h>5000){
+    showToast("尺寸需要在 50～5000 之间");
+    return;
+  }
+
+  createCanvas(w,h,document.getElementById("transparentBackground").checked);
+}
+
+/* =====================================================
+   创建画布
+===================================================== */
+
+function createLayerCanvas(){
+  const c=document.createElement("canvas");
+  c.width=canvasWidth;
+  c.height=canvasHeight;
+  return c;
+}
+
+function createCanvas(w,h,transparent=false){
+  canvasWidth=w;
+  canvasHeight=h;
+
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById("drawPage").classList.add("active");
+  document.getElementById("bottomNav").style.display="none";
+
+  canvas.width=w;
+  canvas.height=h;
+
+  layers=[];
+
+  const bg=createLayerCanvas();
+  const bgctx=bg.getContext("2d");
+
+  if(!transparent){
+    bgctx.fillStyle="#ffffff";
+    bgctx.fillRect(0,0,w,h);
+  }
+
+  layers.push({
+    name:"背景",
+    canvas:bg,
+    locked:true,
+    visible:true,
+    isImage:false
+  });
+
+  const layer=createLayerCanvas();
+
+  layers.push({
+    name:"图层 1",
+    canvas:layer,
+    locked:false,
+    visible:true,
+    isImage:false
+  });
+
+  activeLayerIndex=1;
+
+  history=[];
+  redoHistory=[];
+
+  zoom=1;
+  panX=0;
+  panY=0;
+
+  currentTool="brush";
+  updateToolButtons();
+
+  updateCanvasView();
+  redrawComposite();
+
+  closeModal("createModal");
+
+  saveHistory();
+  saveDraft();
+
+  showToast("画布已创建");
+}
+
+/* =====================================================
+   图层
+===================================================== */
+
+function addLayer(){
+  const newLayer={
+    name:"图层 "+layers.length,
+    canvas:createLayerCanvas(),
+    locked:false,
+    visible:true,
+    isImage:false
+  };
+
+  layers.splice(activeLayerIndex+1,0,newLayer);
+  activeLayerIndex++;
+
+  redrawComposite();
+  renderLayerList();
+  saveHistory();
+  saveDraft();
+  showToast("已新建图层");
+}
+
+function selectLayer(index){
+  if(!layers[index])return;
+  activeLayerIndex=index;
+  renderLayerList();
+}
+
+function deleteLayer(index){
+  if(index===0){ showToast("背景图层不能删除"); return; }
+  if(layers.length<=2){ showToast("至少保留一个绘画图层"); return; }
+
+  layers.splice(index,1);
+
+  if(activeLayerIndex>=layers.length) activeLayerIndex=layers.length-1;
+
+  redrawComposite();
+  renderLayerList();
+  saveHistory();
+  saveDraft();
+  showToast("图层已删除");
+}
+
+function toggleLayerVisibility(index){
+  layers[index].visible=!layers[index].visible;
+  redrawComposite();
+  renderLayerList();
+  saveHistory();
+  saveDraft();
+}
+
+function renameLayer(index){
+  const name=prompt("输入新的图层名称",layers[index].name);
+  if(name && name.trim()){
+    layers[index].name=name.trim();
+    renderLayerList();
+    saveHistory();
+    saveDraft();
+  }
+}
+
+function moveLayerUp(index){
+  if(index<=0 || index>=layers.length-1)return;
+  const temp=layers[index];
+  layers[index]=layers[index+1];
+  layers[index+1]=temp;
+  activeLayerIndex=index+1;
+  redrawComposite();
+  renderLayerList();
+  saveHistory();
+  saveDraft();
+}
+
+function moveLayerDown(index){
+  if(index<=1)return;
+  const temp=layers[index];
+  layers[index]=layers[index-1];
+  layers[index-1]=temp;
+  activeLayerIndex=index-1;
+  redrawComposite();
+  renderLayerList();
+  saveHistory();
+  saveDraft();
+}
+
+function duplicateLayer(index){
+  const source=layers[index];
+  if(!source || index===0){ showToast("背景图层不能复制"); return; }
+
+  const newCanvas=createLayerCanvas();
+  newCanvas.getContext("2d").drawImage(source.canvas,0,0);
+
+  const copy={
+    name:source.name+" 副本",
+    canvas:newCanvas,
+    locked:false,
+    visible:source.visible,
+    isImage:false
+  };
+
+  if(source.isImage){
+    copy.isImage=true;
+    copy.image=source.image;
+    copy.width=source.width;
+    copy.height=source.height;
+    copy.scale=source.scale;
+    copy.rotation=source.rotation;
+    copy.opacity=source.opacity;
+    copy.x=source.x;
+    copy.y=source.y;
+  }
+
+  layers.splice(index+1,0,copy);
+  activeLayerIndex=index+1;
+
+  redrawComposite();
+  renderLayerList();
+  saveHistory();
+  saveDraft();
+  showToast("已复制图层");
+}
+
+/* =====================================================
+   图层列表
+===================================================== */
+
+function renderLayerList(){
+  const box=document.getElementById("layerList");
+  box.innerHTML="";
+
+  for(let i=layers.length-1;i>=0;i--){
+    const layer=layers[i];
+
+    const item=document.createElement("div");
+    item.className="layer-item"+(i===activeLayerIndex?" active":"");
+
+    const eye=document.createElement("button");
+    eye.className="layer-eye";
+    eye.textContent=layer.visible?"👁️":"🚫";
+    eye.onclick=e=>{ e.stopPropagation(); toggleLayerVisibility(i); };
+
+    const thumb=document.createElement("canvas");
+    thumb.className="layer-thumb";
+    thumb.width=80; thumb.height=80;
+
+    const tc=thumb.getContext("2d");
+    tc.fillStyle="#eee";
+    tc.fillRect(0,0,80,80);
+    tc.drawImage(layer.canvas,0,0,layer.canvas.width,layer.canvas.height,0,0,80,80);
+
+    const name=document.createElement("div");
+    name.className="layer-name";
+    name.textContent=(i===0?"🔒 ":"")+layer.name;
+
+    const actions=document.createElement("div");
+    actions.className="layer-actions";
+
+    const rename=document.createElement("button");
+    rename.textContent="✏️";
+    rename.onclick=e=>{ e.stopPropagation(); renameLayer(i); };
+
+    const duplicate=document.createElement("button");
+    duplicate.textContent="⧉";
+    duplicate.onclick=e=>{ e.stopPropagation(); duplicateLayer(i); };
+
+    const up=document.createElement("button");
+    up.textContent="↑";
+    up.onclick=e=>{ e.stopPropagation(); moveLayerUp(i); };
+
+    const down=document.createElement("button");
+    down.textContent="↓";
+    down.onclick=e=>{ e.stopPropagation(); moveLayerDown(i); };
+
+    actions.append(rename,duplicate,up,down);
+
+    if(layer.isImage){
+      const edit=document.createElement("button");
+      edit.textContent="🔧";
+      edit.onclick=e=>{ e.stopPropagation(); openImageEditor(i); };
+      actions.append(edit);
+    }
+
+    if(i!==0){
+      const del=document.createElement("button");
+      del.textContent="🗑️";
+      del.onclick=e=>{ e.stopPropagation(); deleteLayer(i); };
+      actions.append(del);
+    }
+
+    item.append(eye,thumb,name,actions);
+    item.onclick=()=>selectLayer(i);
+    box.appendChild(item);
+  }
+}
+
+function openLayers(){
+  renderLayerList();
+  document.getElementById("layersModal").classList.add("show");
+}
+
+/* =====================================================
+   合成
+===================================================== */
+
+function renderImageLayer(layer){
+  if(!layer.image)return;
+
+  const c=layer.canvas;
+  const cctx=c.getContext("2d");
+
+  cctx.clearRect(0,0,c.width,c.height);
+  cctx.save();
+  cctx.globalAlpha=layer.opacity ?? 1;
+  cctx.translate(c.width/2+layer.x,c.height/2+layer.y);
+  cctx.rotate((layer.rotation||0)*Math.PI/180);
+  cctx.scale(layer.scale||1,layer.scale||1);
+  cctx.drawImage(layer.image,-layer.width/2,-layer.height/2,layer.width,layer.height);
+  cctx.restore();
+}
+
+function redrawComposite(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  for(let i=0;i<layers.length;i++){
+    const layer=layers[i];
+    if(!layer.visible)continue;
+
+    if(layer.isImage) renderImageLayer(layer);
+
+    ctx.drawImage(layer.canvas,0,0);
+  }
+}
+
+/* =====================================================
+   笔刷
+===================================================== */
+
+function setBrush(type){
+  currentBrush=type;
+
+  document.querySelectorAll(".brush-item").forEach(b=>b.classList.remove("active"));
+
+  const map={pencil:"brushPencil",hard:"brushHard",soft:"brushSoft",spray:"brushSpray"};
+  const button=document.getElementById(map[type]);
+  if(button) button.classList.add("active");
+
+  if(currentTool==="eraser") setTool("brush");
+
+  showToast({
+    pencil:"已选择铅笔",
+    hard:"已选择硬笔",
+    soft:"已选择软笔",
+    spray:"已选择喷笔"
+  }[type]);
+}
+
+/* =====================================================
+   工具
+===================================================== */
+
+function setTool(tool){
+  currentTool=tool;
+  updateToolButtons();
+
+  const info=document.getElementById("touchModeInfo");
+  if(tool==="touch"){
+    info.classList.add("show");
+    showToast("触控模式：拖动画布");
+  }else{
+    info.classList.remove("show");
+  }
+}
+
+function updateToolButtons(){
+  document.getElementById("brushTool").classList.toggle("active",currentTool==="brush");
+  document.getElementById("eraserTool").classList.toggle("active",currentTool==="eraser");
+  document.getElementById("touchTool").classList.toggle("active",currentTool==="touch");
+}
+
+document.getElementById("colorPicker").addEventListener("input",e=>{
+  brushColor=e.target.value;
+});
+
+document.getElementById("sizeSlider").addEventListener("input",e=>{
+  brushSize=Number(e.target.value);
+  document.getElementById("sizeValue").textContent=brushSize+" px";
+});
+
+/* =====================================================
+   绘画
+===================================================== */
+
+function getCanvasPoint(e){
+  const rect=canvas.getBoundingClientRect();
+  const x=(e.clientX-rect.left)*canvas.width/rect.width;
+  const y=(e.clientY-rect.top)*canvas.height/rect.height;
+  return {x,y};
+}
+
+function getActiveLayer(){
+  const layer=layers[activeLayerIndex];
+  if(!layer || layer.locked || layer.isImage) return null;
+  return layer;
+}
+
+function beginDraw(e){
+  if(editingImageIndex>=0 || currentTool==="touch") return;
+
+  const layer=getActiveLayer();
+  if(!layer) return;
+
+  drawing=true;
+
+  const p=getCanvasPoint(e);
+  lastX=p.x; lastY=p.y;
+
+  const lctx=layer.canvas.getContext("2d");
+  lctx.beginPath();
+  lctx.moveTo(lastX,lastY);
+  drawPoint(lctx,lastX,lastY);
+}
+
+function drawMove(e){
+  if(!drawing || editingImageIndex>=0 || currentTool==="touch") return;
+
+  const layer=getActiveLayer();
+  if(!layer) return;
+
+  const p=getCanvasPoint(e);
+
+  drawLine(layer.canvas.getContext("2d"),lastX,lastY,p.x,p.y);
+
+  lastX=p.x; lastY=p.y;
+  redrawComposite();
+}
+
+function endDraw(){
+  if(!drawing) return;
+  drawing=false;
+  saveHistoryAfterOperation();
+}
+
+/* =====================================================
+   笔刷绘制
+===================================================== */
+
+function prepareBrush(c){
+  c.lineCap="round";
+  c.lineJoin="round";
+
+  if(currentTool==="eraser"){
+    c.globalCompositeOperation="destination-out";
+    c.globalAlpha=1;
+    c.shadowBlur=0;
+    return;
+  }
+
+  c.globalCompositeOperation="source-over";
+
+  if(currentBrush==="pencil"){
+    c.globalAlpha=.82;
+    c.lineWidth=Math.max(1,brushSize*.65);
+    c.strokeStyle=brushColor;
+    c.shadowBlur=0;
+  }else if(currentBrush==="hard"){
+    c.globalAlpha=1;
+    c.lineWidth=brushSize;
+    c.strokeStyle=brushColor;
+    c.shadowBlur=0;
+  }else if(currentBrush==="soft"){
+    c.globalAlpha=.42;
+    c.lineWidth=brushSize;
+    c.strokeStyle=brushColor;
+    c.shadowColor=brushColor;
+    c.shadowBlur=Math.max(3,brushSize*.7);
+  }else if(currentBrush==="spray"){
+    c.globalAlpha=.16;
+    c.lineWidth=Math.max(2,brushSize*.7);
+    c.strokeStyle=brushColor;
+    c.shadowColor=brushColor;
+    c.shadowBlur=brushSize*1.2;
+  }
+}
+
+function drawPoint(c,x,y){
+  prepareBrush(c);
+
+  if(currentBrush==="spray" && currentTool!=="eraser"){
+    const amount=Math.max(8,Math.floor(brushSize*.8));
+
+    for(let i=0;i<amount;i++){
+      const angle=Math.random()*Math.PI*2;
+      const radius=Math.random()*brushSize*2;
+      const px=x+Math.cos(angle)*radius;
+      const py=y+Math.sin(angle)*radius;
+
+      c.beginPath();
+      c.arc(px,py,Math.max(.5,brushSize*.05),0,Math.PI*2);
+      c.fillStyle=brushColor;
+      c.fill();
+    }
+  }else{
+    c.beginPath();
+    c.arc(x,y,Math.max(.5,c.lineWidth/2),0,Math.PI*2);
+    c.fillStyle=currentTool==="eraser"?"#000":brushColor;
+    c.fill();
+  }
+
+  c.globalAlpha=1;
+  c.shadowBlur=0;
+  c.globalCompositeOperation="source-over";
+}
+
+function drawLine(c,x1,y1,x2,y2){
+  prepareBrush(c);
+
+  if(currentBrush==="spray" && currentTool!=="eraser"){
+    const distance=Math.hypot(x2-x1,y2-y1);
+    const count=Math.max(5,Math.floor(distance/3));
+
+    for(let i=0;i<count;i++){
+      const t=i/count;
+      const x=x1+(x2-x1)*t;
+      const y=y1+(y2-y1)*t;
+      const amount=Math.max(5,Math.floor(brushSize*.6));
+
+      for(let j=0;j<amount;j++){
+        const angle=Math.random()*Math.PI*2;
+        const radius=Math.random()*brushSize*1.5;
+        const px=x+Math.cos(angle)*radius;
+        const py=y+Math.sin(angle)*radius;
+
+        c.beginPath();
+        c.arc(px,py,Math.max(.4,brushSize*.045),0,Math.PI*2);
+        c.fillStyle=brushColor;
+        c.fill();
+      }
+    }
+  }else{
+    c.beginPath();
+    c.moveTo(x1,y1);
+    c.lineTo(x2,y2);
+    c.strokeStyle=currentTool==="eraser"?"#000":brushColor;
+    c.stroke();
+  }
+
+  c.globalAlpha=1;
+  c.shadowBlur=0;
+  c.globalCompositeOperation="source-over";
+}
+
+/* =====================================================
+   画布视图
+===================================================== */
+
+function updateCanvasView(){
+  canvasWrap.style.transform=
+    `translate(calc(-50% + ${panX}px),calc(-50% + ${panY}px)) scale(${zoom})`;
+
+  document.getElementById("zoomInfo").textContent=Math.round(zoom*100)+"%";
+}
+
+function resetView(){
+  zoom=1;
+  panX=0;
+  panY=0;
+  updateCanvasView();
+  showToast("视图已重置");
+}
+
+/* =====================================================
+   画布触控 / 双指缩放
+===================================================== */
+
+function getViewMidpoint(){
+  const arr=[...viewPointers.values()];
+  if(arr.length<2) return null;
+  return {x:(arr[0].x+arr[1].x)/2,y:(arr[0].y+arr[1].y)/2};
+}
+
+function getViewDistance(){
+  const arr=[...viewPointers.values()];
+  if(arr.length<2) return 0;
+  return Math.hypot(arr[0].x-arr[1].x,arr[0].y-arr[1].y);
+}
+
+function startViewGesture(){
+  const midpoint=getViewMidpoint();
+  if(!midpoint) return;
+
+  viewStartDistance=getViewDistance();
+  viewStartZoom=zoom;
+  viewStartMidX=midpoint.x;
+  viewStartMidY=midpoint.y;
+  viewStartPanX=panX;
+  viewStartPanY=panY;
+  viewGestureMode="two";
+  drawing=false;
+}
+
+function updateViewGesture(){
+  if(viewGestureMode!=="two" || viewPointers.size<2) return;
+
+  const midpoint=getViewMidpoint();
+  const distance=getViewDistance();
+  if(!midpoint || !viewStartDistance) return;
+
+  const scale=distance/viewStartDistance;
+  zoom=Math.min(4,Math.max(.5,viewStartZoom*scale));
+  panX=viewStartPanX+(midpoint.x-viewStartMidX);
+  panY=viewStartPanY+(midpoint.y-viewStartMidY);
+  updateCanvasView();
+}
+
+canvasArea.addEventListener("pointerdown",e=>{
+  if(editingImageIndex>=0) return;
+
+  viewPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+
+  if(viewPointers.size===2){
+    startViewGesture();
+  }else{
+    if(currentTool==="touch"){
+      viewGestureMode="one";
+      viewStartMidX=e.clientX;
+      viewStartMidY=e.clientY;
+      viewStartPanX=panX;
+      viewStartPanY=panY;
+      drawing=false;
+    }else{
+      viewGestureMode=null;
+    }
+  }
+
+  e.preventDefault();
+},{passive:false});
+
+canvasArea.addEventListener("pointermove",e=>{
+  if(editingImageIndex>=0) return;
+  if(!viewPointers.has(e.pointerId)) return;
+
+  viewPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+
+  if(viewPointers.size>=2){
+    updateViewGesture();
+  }else if(viewGestureMode==="one" && currentTool==="touch"){
+    panX=viewStartPanX+(e.clientX-viewStartMidX);
+    panY=viewStartPanY+(e.clientY-viewStartMidY);
+    updateCanvasView();
+  }
+
+  e.preventDefault();
+},{passive:false});
+
+function endViewPointer(e){
+  viewPointers.delete(e.pointerId);
+
+  if(viewPointers.size===0){
+    viewGestureMode=null;
+  }else if(viewPointers.size===1){
+    const remain=[...viewPointers.values()][0];
+    viewGestureMode=null;
+    if(currentTool==="touch"){
+      viewStartMidX=remain.x;
+      viewStartMidY=remain.y;
+      viewStartPanX=panX;
+      viewStartPanY=panY;
+      viewGestureMode="one";
+    }
+  }
+}
+
+canvasArea.addEventListener("pointerup",endViewPointer);
+canvasArea.addEventListener("pointercancel",endViewPointer);
+
+/* =====================================================
+   Pointer 绘画事件
+===================================================== */
+
+canvas.addEventListener("pointerdown",e=>{
+  if(editingImageIndex>=0){ imagePointerDown(e); return; }
+  if(currentTool==="touch") return;
+  if(viewPointers.size>=2){ drawing=false; return; }
+
+  canvas.setPointerCapture(e.pointerId);
+  beginDraw(e);
+});
+
+canvas.addEventListener("pointermove",e=>{
+  if(editingImageIndex>=0){ imagePointerMove(e); return; }
+  if(currentTool==="touch") return;
+  if(viewPointers.size>=2) return;
+  drawMove(e);
+});
+
+canvas.addEventListener("pointerup",e=>{
+  if(editingImageIndex>=0){ imagePointerUp(e); return; }
+  if(currentTool==="touch") return;
+  endDraw();
+});
+
+canvas.addEventListener("pointercancel",e=>{
+  if(editingImageIndex>=0){ imagePointerUp(e); return; }
+  if(currentTool==="touch") return;
+  endDraw();
+});
+
+/* =====================================================
+   历史记录
+===================================================== */
+
+function createHistorySnapshot(){
+  return { layers:cloneLayers(), active:activeLayerIndex };
+}
+
+/* ---------------------------------------------------------
+   ★ 关键修改点 1：cloneLayers
+   - 图像图层保存 imageData（dataURL 字符串）
+   - 同时保存 canvasData（用于即时渲染，图片加载完再精确重绘）
+   - 普通图层只保存 canvasData
+--------------------------------------------------------- */
+function cloneLayers(){
+  return layers.map(layer=>{
+    const item={
+      name:layer.name,
+      locked:layer.locked,
+      visible:layer.visible,
+      isImage:layer.isImage||false,
+      width:layer.width,
+      height:layer.height,
+      scale:layer.scale,
+      rotation:layer.rotation,
+      opacity:layer.opacity,
+      x:layer.x,
+      y:layer.y,
+      imageData:null,
+      canvasData:null
+    };
+
+    if(layer.isImage && layer.image && layer.image.src){
+      item.imageData=layer.image.src;
+    }
+
+    try{
+      item.canvasData=layer.canvas.toDataURL("image/png");
+    }catch(error){
+      console.warn("图层序列化失败",error);
+      item.canvasData=null;
+    }
+
+    return item;
+  });
+}
+
+function saveHistory(){
+  const snapshot=createHistorySnapshot();
+  history.push(snapshot);
+  if(history.length>MAX_HISTORY) history.shift();
+  redoHistory=[];
+  updateHistoryButtons();
+}
+
+/* ---------------------------------------------------------
+   ★ 关键修改点 2：restoreSnapshot
+   - 从 imageData 重建 Image 对象（图像图层）
+   - 从 canvasData 恢复画布内容
+--------------------------------------------------------- */
+function restoreSnapshot(snapshot){
+  if(!snapshot) return;
+
+  const restoredLayers=[];
+
+  snapshot.layers.forEach(data=>{
+    const c=createLayerCanvas();
+
+    const layer={
+      name:data.name,
+      canvas:c,
+      locked:data.locked,
+      visible:data.visible,
+      isImage:data.isImage,
+      image:null,
+      width:data.width,
+      height:data.height,
+      scale:data.scale||1,
+      rotation:data.rotation||0,
+      opacity:data.opacity??1,
+      x:data.x||0,
+      y:data.y||0
+    };
+
+    // 先用 canvasData 把画面立刻恢复出来
+    if(data.canvasData){
+      const img=new Image();
+      img.onload=()=>{
+        const cctx=c.getContext("2d");
+        cctx.clearRect(0,0,c.width,c.height);
+        cctx.drawImage(img,0,0);
+        redrawComposite();
+      };
+      img.src=data.canvasData;
+    }
+
+    // 图像图层：再加载原始图片，并重新渲染
+    if(data.isImage && data.imageData){
+      const img=new Image();
+      img.onload=()=>{
+        layer.image=img;
+        renderImageLayer(layer);
+        redrawComposite();
+      };
+      img.onerror=()=>{
+        console.warn("图像图层恢复失败");
+      };
+      img.src=data.imageData;
+    }
+
+    restoredLayers.push(layer);
+  });
+
+  layers=restoredLayers;
+
+  activeLayerIndex=Math.max(0,Math.min(snapshot.active,layers.length-1));
+
+  redrawComposite();
+  renderLayerList();
+  updateHistoryButtons();
+}
+
+function undo(){
+  if(history.length<=1){ showToast("没有可以撤销的操作"); return; }
+
+  const current=history.pop();
+  redoHistory.push(current);
+
+  const previous=history[history.length-1];
+  restoreSnapshot(previous);
+
+  showToast("已撤销");
+  updateHistoryButtons();
+  saveDraft();
+}
+
+function redo(){
+  if(!redoHistory.length){ showToast("没有可以重做的操作"); return; }
+
+  const snapshot=redoHistory.pop();
+  history.push(snapshot);
+  restoreSnapshot(snapshot);
+
+  showToast("已重做");
+  updateHistoryButtons();
+  saveDraft();
+}
+
+function updateHistoryButtons(){
+  const undoBtn=document.querySelector('.draw-top button[onclick="undo()"]');
+  const redoBtn=document.querySelector('.draw-top button[onclick="redo()"]');
+
+  if(undoBtn) undoBtn.style.opacity=history.length>1?"1":".35";
+  if(redoBtn) redoBtn.style.opacity=redoHistory.length>0?"1":".35";
+}
+
+function saveHistoryAfterOperation(){
+  clearTimeout(historySaveTimer);
+  historySaveTimer=setTimeout(()=>{
+    saveHistory();
+    saveDraft();
+  },80);
+}
+
+/* =====================================================
+   草稿保存 / 恢复
+===================================================== */
+
+function saveDraft(){
+  if(!layers.length || !canvas.width) return;
+
+  clearTimeout(draftTimer);
+
+  draftTimer=setTimeout(()=>{
+    try{
+      const snapshot={
+        version:2,
+        width:canvasWidth,
+        height:canvasHeight,
+        active:activeLayerIndex,
+        layers:cloneLayers(),
+        zoom:zoom,
+        panX:panX,
+        panY:panY,
+        savedAt:Date.now()
+      };
+
+      localStorage.setItem(DRAFT_KEY,JSON.stringify(snapshot));
+    }catch(error){
+      console.warn("草稿保存失败",error);
+    }
+  },500);
+}
+
+function hasDraft(){
+  return !!localStorage.getItem(DRAFT_KEY);
+}
+
+/* ---------------------------------------------------------
+   ★ 关键修改点 3：restoreDraft
+   与 restoreSnapshot 逻辑一致
+--------------------------------------------------------- */
+function restoreDraft(){
+  try{
+    const data=JSON.parse(localStorage.getItem(DRAFT_KEY));
+
+    if(!data || !data.layers || !data.layers.length){
+      showToast("没有找到草稿");
+      return;
+    }
+
+    canvasWidth=data.width;
+    canvasHeight=data.height;
+    canvas.width=canvasWidth;
+    canvas.height=canvasHeight;
+
+    layers=[];
+
+    data.layers.forEach(layerData=>{
+      const c=createLayerCanvas();
+
+      const layer={
+        name:layerData.name,
+        canvas:c,
+        locked:layerData.locked,
+        visible:layerData.visible,
+        isImage:layerData.isImage,
+        image:null,
+        width:layerData.width,
+        height:layerData.height,
+        scale:layerData.scale||1,
+        rotation:layerData.rotation||0,
+        opacity:layerData.opacity??1,
+        x:layerData.x||0,
+        y:layerData.y||0
+      };
+
+      if(layerData.canvasData){
+        const img=new Image();
+        img.onload=()=>{
+          c.getContext("2d").drawImage(img,0,0);
+          redrawComposite();
+        };
+        img.src=layerData.canvasData;
+      }
+
+      if(layerData.isImage && layerData.imageData){
+        const img=new Image();
+        img.onload=()=>{
+          layer.image=img;
+          renderImageLayer(layer);
+          redrawComposite();
+        };
+        img.onerror=()=>{
+          console.warn("图片草稿恢复失败");
+        };
+        img.src=layerData.imageData;
+      }
+
+      layers.push(layer);
+    });
+
+    activeLayerIndex=Math.min(data.active||1,layers.length-1);
+
+    zoom=data.zoom||1;
+    panX=data.panX||0;
+    panY=data.panY||0;
+
+    history=[];
+    redoHistory=[];
+
+    updateCanvasView();
+    redrawComposite();
+    updateToolButtons();
+    renderLayerList();
+
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.getElementById("drawPage").classList.add("active");
+    document.getElementById("bottomNav").style.display="none";
+
+    showToast("已恢复上次创作");
+
+  }catch(error){
+    console.error(error);
+    showToast("草稿恢复失败");
+  }
+}
+
+/* =====================================================
+   清空
+===================================================== */
+
+function clearLayer(){
+  const layer=getActiveLayer();
+  if(!layer){ showToast("当前图层不能清空"); return; }
+
+  layer.canvas.getContext("2d").clearRect(0,0,canvasWidth,canvasHeight);
+
+  redrawComposite();
+  saveHistoryAfterOperation();
+  showToast("当前图层已清空");
+}
+
+/* =====================================================
+   图片导入
+   ★ 关键修改点 4：改用 FileReader 读为 dataURL
+     这样 img.src 就是可序列化、可持久化的字符串
+===================================================== */
+
+function importImage(){
+  const input=document.createElement("input");
+  input.type="file";
+  input.accept="image/*";
+
+  input.onchange=()=>{
+    const file=input.files[0];
+    if(!file) return;
+
+    const reader=new FileReader();
+
+    reader.onload=()=>{
+      const dataUrl=reader.result;
+      const img=new Image();
+
+      img.onload=()=>{
+        const maxW=canvasWidth*.9;
+        const maxH=canvasHeight*.9;
+        const scale=Math.min(maxW/img.width,maxH/img.height,1);
+
+        const layer={
+          name:"导入图片",
+          canvas:createLayerCanvas(),
+          locked:false,
+          visible:true,
+          isImage:true,
+          image:img,
+          width:img.width*scale,
+          height:img.height*scale,
+          scale:1,
+          rotation:0,
+          opacity:1,
+          x:0,
+          y:0
+        };
+
+        layers.splice(activeLayerIndex+1,0,layer);
+        activeLayerIndex++;
+
+        redrawComposite();
+        renderLayerList();
+        saveHistory();
+        saveDraft();
+
+        showToast("图片已导入");
+      };
+
+      img.onerror=()=>{ showToast("图片读取失败"); };
+
+      img.src=dataUrl;
+    };
+
+    reader.onerror=()=>{ showToast("文件读取失败"); };
+
+    reader.readAsDataURL(file);
+  };
+
+  input.click();
+}
+
+/* =====================================================
+   图片编辑器
+===================================================== */
+
+function getEditingImageLayer(){
+  if(editingImageIndex<0) return null;
+  return layers[editingImageIndex];
+}
+
+function openImageEditor(index){
+  const layer=layers[index];
+  if(!layer || !layer.isImage) return;
+
+  editingImageIndex=index;
+  syncImageEditorSliders();
+  document.getElementById("imageEditorModal").classList.add("show");
+}
+
+function closeImageEditor(){
+  editingImageIndex=-1;
+  imagePointers.clear();
+  imageGestureMode=null;
+
+  document.getElementById("imageEditorModal").classList.remove("show");
+
+  redrawComposite();
+  saveHistory();
+  saveDraft();
+}
+
+function syncImageEditorSliders(){
+  const layer=getEditingImageLayer();
+  if(!layer) return;
+
+  document.getElementById("imageScale").value=Math.min(500,Math.round(layer.scale*100));
+  document.getElementById("imageRotation").value=normalizeRotation(layer.rotation);
+  document.getElementById("imageOpacity").value=Math.round(layer.opacity*100);
+  document.getElementById("imageX").value=Math.max(-2000,Math.min(2000,Math.round(layer.x)));
+  document.getElementById("imageY").value=Math.max(-2000,Math.min(2000,Math.round(layer.y)));
+
+  updateImageEditorLabels();
+}
+
+function normalizeRotation(r){
+  let value=r%360;
+  if(value>180) value-=360;
+  if(value<-180) value+=360;
+  return Math.round(value);
+}
+
+function updateImageEditorLabels(){
+  const layer=getEditingImageLayer();
+  if(!layer) return;
+
+  document.getElementById("imageScaleLabel").textContent=Math.round(layer.scale*100)+"%";
+  document.getElementById("imageRotationLabel").textContent=normalizeRotation(layer.rotation)+"°";
+  document.getElementById("imageOpacityLabel").textContent=Math.round(layer.opacity*100)+"%";
+  document.getElementById("imageXLabel").textContent=Math.round(layer.x);
+  document.getElementById("imageYLabel").textContent=Math.round(layer.y);
+}
+
+document.getElementById("imageScale").addEventListener("input",e=>{
+  const layer=getEditingImageLayer(); if(!layer) return;
+  layer.scale=Number(e.target.value)/100;
+  redrawComposite();
+  updateImageEditorLabels();
+});
+
+document.getElementById("imageRotation").addEventListener("input",e=>{
+  const layer=getEditingImageLayer(); if(!layer) return;
+  layer.rotation=Number(e.target.value);
+  redrawComposite();
+  updateImageEditorLabels();
+});
+
+document.getElementById("imageOpacity").addEventListener("input",e=>{
+  const layer=getEditingImageLayer(); if(!layer) return;
+  layer.opacity=Number(e.target.value)/100;
+  redrawComposite();
+  updateImageEditorLabels();
+});
+
+document.getElementById("imageX").addEventListener("input",e=>{
+  const layer=getEditingImageLayer(); if(!layer) return;
+  layer.x=Number(e.target.value);
+  redrawComposite();
+  updateImageEditorLabels();
+});
+
+document.getElementById("imageY").addEventListener("input",e=>{
+  const layer=getEditingImageLayer(); if(!layer) return;
+  layer.y=Number(e.target.value);
+  redrawComposite();
+  updateImageEditorLabels();
+});
+
+function resetImageTransform(){
+  const layer=getEditingImageLayer();
+  if(!layer) return;
+
+  layer.scale=1;
+  layer.rotation=0;
+  layer.opacity=1;
+  layer.x=0;
+  layer.y=0;
+
+  syncImageEditorSliders();
+  redrawComposite();
+}
+
+/* =====================================================
+   图片直接触摸
+===================================================== */
+
+function imagePointerDown(e){
+  const layer=getEditingImageLayer();
+  if(!layer) return;
+
+  imagePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+
+  if(imagePointers.size===1){
+    imageGestureMode="drag";
+  }else if(imagePointers.size===2){
+    const arr=[...imagePointers.values()];
+
+    imageGestureStartDistance=Math.hypot(arr[0].x-arr[1].x,arr[0].y-arr[1].y);
+    imageGestureStartAngle=Math.atan2(arr[1].y-arr[0].y,arr[1].x-arr[0].x);
+    imageGestureStartScale=layer.scale;
+    imageGestureStartRotation=layer.rotation;
+    imageGestureMode="transform";
+  }
+
+  e.preventDefault();
+}
+
+function imagePointerMove(e){
+  const layer=getEditingImageLayer();
+  if(!layer) return;
+  if(!imagePointers.has(e.pointerId)) return;
+
+  const old=imagePointers.get(e.pointerId);
+  const dx=e.clientX-old.x;
+  const dy=e.clientY-old.y;
+
+  imagePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+
+  if(imageGestureMode==="drag" && imagePointers.size===1){
+    layer.x+=dx/zoom;
+    layer.y+=dy/zoom;
+    syncImageEditorSliders();
+    redrawComposite();
+  }else if(imageGestureMode==="transform" && imagePointers.size===2){
+    const arr=[...imagePointers.values()];
+    const distance=Math.hypot(arr[0].x-arr[1].x,arr[0].y-arr[1].y);
+    const angle=Math.atan2(arr[1].y-arr[0].y,arr[1].x-arr[0].x);
+
+    if(imageGestureStartDistance>0){
+      layer.scale=Math.min(5,Math.max(.2,imageGestureStartScale*distance/imageGestureStartDistance));
+
+      let delta=(angle-imageGestureStartAngle)*180/Math.PI;
+      if(delta>180) delta-=360;
+      if(delta<-180) delta+=360;
+
+      layer.rotation=imageGestureStartRotation+delta;
+      syncImageEditorSliders();
+      redrawComposite();
+    }
+  }
+
+  e.preventDefault();
+}
+
+function imagePointerUp(e){
+  imagePointers.delete(e.pointerId);
+  if(imagePointers.size===0) imageGestureMode=null;
+  e.preventDefault();
+}
+
+/* =====================================================
+   自定义工具栏
+===================================================== */
+
+const TOOLBAR_KEY="huajing_study_toolbar_v1";
+
+const defaultToolbar={
+  brush:true,eraser:true,touch:true,color:true,clear:true,resetView:true,import:true,size:true,
+  brushPencil:true,brushHard:true,brushSoft:true,brushSpray:true
+};
+
+function getToolbarSettings(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(TOOLBAR_KEY)||"null");
+    return {...defaultToolbar,...(saved||{})};
+  }catch{
+    return {...defaultToolbar};
+  }
+}
+
+function saveToolbarSettings(){
+  const settings={};
+  document.querySelectorAll("[data-toolbar-check]").forEach(input=>{
+    settings[input.dataset.toolbarCheck]=input.checked;
+  });
+  localStorage.setItem(TOOLBAR_KEY,JSON.stringify(settings));
+  applyToolbarSettings();
+}
+
+function applyToolbarSettings(){
+  const settings=getToolbarSettings();
+
+  document.querySelectorAll("[data-toolbar]").forEach(element=>{
+    const key=element.dataset.toolbar;
+    element.style.display=settings[key]?"":"none";
+  });
+
+  document.querySelectorAll("[data-toolbar-check]").forEach(input=>{
+    const key=input.dataset.toolbarCheck;
+    input.checked=settings[key]!==false;
+  });
+}
+
+function openToolbarSettings(){
+  applyToolbarSettings();
+  document.getElementById("toolbarModal").classList.add("show");
+}
+
+function closeToolbarSettings(){
+  saveToolbarSettings();
+  document.getElementById("toolbarModal").classList.remove("show");
+}
+
+function resetToolbarSettings(){
+  localStorage.removeItem(TOOLBAR_KEY);
+  applyToolbarSettings();
+  showToast("工具栏已恢复默认");
+}
+
+document.querySelectorAll("[data-toolbar-check]").forEach(input=>{
+  input.addEventListener("change",saveToolbarSettings);
+});
+
+/* =====================================================
+   保存 / 导出
+===================================================== */
+
+function getWorks(){
+  try{
+    return JSON.parse(localStorage.getItem("huajing_study_works_v1")||"[]");
+  }catch{
+    return [];
+  }
+}
+
+function setWorks(works){
+  localStorage.setItem("huajing_study_works_v1",JSON.stringify(works));
+}
+
+function finishDrawing(){
+  const image=canvas.toDataURL("image/png");
+  const works=getWorks();
+
+  works.unshift({
+    id:Date.now(),
+    name:"我的作品",
+    width:canvasWidth,
+    height:canvasHeight,
+    image:image,
+    createdAt:new Date().toLocaleString()
+  });
+
+  if(works.length>10) works.length=10;
+
+  setWorks(works);
+  showToast("作品已保存");
+
+  setTimeout(()=>leaveDrawing(),500);
+}
+
+function exportPNG(){
+  const a=document.createElement("a");
+  a.download="画境Study_"+Date.now()+".png";
+  a.href=canvas.toDataURL("image/png");
+  a.click();
+  showToast("PNG 已导出");
+}
+
+function renderWorks(){
+  const works=getWorks();
+
+  document.getElementById("workCount").textContent=works.length+" 个作品";
+
+  const grid=document.getElementById("workGrid");
+  grid.innerHTML="";
+
+  if(!works.length){
+    grid.innerHTML=
+      `<div style="grid-column:1/-1;text-align:center;color:#999;padding:50px 0">
+        暂时还没有作品
+      </div>`;
+    return;
+  }
+
+  works.forEach(work=>{
+    const box=document.createElement("div");
+    box.className="work";
+
+    box.innerHTML=`
+      <img src="${work.image}">
+      <div class="work-info">
+        <b>${escapeHTML(work.name)}</b>
+        <span>${work.width} × ${work.height}</span>
+        <br>
+        <span>${escapeHTML(work.createdAt)}</span>
+        <br>
+        <button class="work-delete">删除</button>
+      </div>
+    `;
+
+    box.querySelector(".work-delete").onclick=()=>{
+      if(confirm("确定删除这个作品吗？")){
+        const arr=getWorks().filter(x=>x.id!==work.id);
+        setWorks(arr);
+        renderWorks();
+      }
+    };
+
+    grid.appendChild(box);
+  });
+}
+
+function escapeHTML(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+/* =====================================================
+   离开绘画
+===================================================== */
+
+function leaveDrawing(){
+  document.getElementById("drawPage").classList.remove("active");
+  document.getElementById("bottomNav").style.display="flex";
+
+  showPage("homePage");
+  renderWorks();
+  updateDraftButton();
+}
+
+function updateDraftButton(){
+  const btn=document.getElementById("continueDraftButton");
+  if(!btn) return;
+
+  btn.style.display = hasDraft() ? "block" : "none";
+}
+
+/* =====================================================
+   Toast
+===================================================== */
+
+let toastTimer=null;
+
+function showToast(text){
+  const toast=document.getElementById("toast");
+  toast.textContent=text;
+  toast.classList.add("show");
+
+  clearTimeout(toastTimer);
+
+  toastTimer=setTimeout(()=>{
+    toast.classList.remove("show");
+  },1500);
+}
+
+/* =====================================================
+   初始化
+===================================================== */
+
+applyToolbarSettings();
+renderWorks();
+updateHistoryButtons();
+
+if(hasDraft()){
+  document.getElementById("continueDraftButton").style.display="block";
+}
+
+</script></body>
+</html>
