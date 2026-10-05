@@ -1,9 +1,13 @@
 {
   "name": "画境 Study",
-  "short_name": "画境 Study",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
-  "orientation": "portrait"
+  "short_name": "画境",
+  "description": "给学生的轻量绘画工具",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "background_color": "#222222",
+  "theme_color": "#222222",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
 }
